@@ -1,5 +1,3 @@
-"""Small parser sanity check, independent of Gurobi."""
-
 from pathlib import Path
 
 from mkp_instance import load_benchmark_instances, read_reference_values, reference_key
@@ -10,6 +8,7 @@ DATA_DIR = ROOT_DIR / "data"
 
 
 def main() -> None:
+    # Verificacao simples do parser, sem usar o Gurobi.
     instances = load_benchmark_instances(DATA_DIR)
     references = read_reference_values(DATA_DIR / "mkcbres.txt")
 

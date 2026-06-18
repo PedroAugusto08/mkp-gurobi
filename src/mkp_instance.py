@@ -1,5 +1,3 @@
-"""Utilities to read OR-Library MKP benchmark instances."""
-
 from dataclasses import dataclass, replace
 from pathlib import Path
 import re
@@ -7,8 +5,7 @@ import re
 
 @dataclass(frozen=True)
 class MKPInstance:
-    """One 0-1 Multidimensional Knapsack instance."""
-
+    # Dados de uma instancia 0-1 do MKP.
     file_name: str
     instance: int
     n: int
@@ -21,7 +18,7 @@ class MKPInstance:
 
 
 def alpha_from_instance(instance_number: int) -> float:
-    """Return the Chu-Beasley alpha group for instances 1..30."""
+    # As 30 instancias de cada arquivo sao divididas em tres grupos.
     if 1 <= instance_number <= 10:
         return 0.25
     if 11 <= instance_number <= 20:
@@ -32,7 +29,7 @@ def alpha_from_instance(instance_number: int) -> float:
 
 
 def read_mknapcb_file(path: Path) -> list[MKPInstance]:
-    """Read all instances from one mknapcb file using numeric tokens only."""
+    # Le o arquivo por tokens, pois as quebras de linha variam.
     tokens = [int(value) for value in path.read_text().split()]
     if not tokens:
         raise ValueError(f"empty instance file: {path}")
@@ -58,7 +55,7 @@ def read_mknapcb_file(path: Path) -> list[MKPInstance]:
         capacities = tokens[cursor : cursor + m]
         cursor += m
 
-        # Fail early if a malformed file silently produced short slices.
+        # Valida as dimensoes antes de montar a instancia.
         if len(profits) != n or len(weights) != m or len(capacities) != m:
             raise ValueError(f"incomplete data in {path}, instance {instance_number}")
         if any(len(row) != n for row in weights):
@@ -86,7 +83,7 @@ def read_mknapcb_file(path: Path) -> list[MKPInstance]:
 
 
 def read_all_mknapcb(data_dir: Path) -> list[MKPInstance]:
-    """Read the nine Chu-Beasley MKP benchmark files."""
+    # Le os nove arquivos de benchmark de Chu e Beasley.
     all_instances: list[MKPInstance] = []
     for index in range(1, 10):
         all_instances.extend(read_mknapcb_file(data_dir / f"mknapcb{index}.txt"))
@@ -94,7 +91,7 @@ def read_all_mknapcb(data_dir: Path) -> list[MKPInstance]:
 
 
 def load_benchmark_instances(data_dir: Path) -> list[MKPInstance]:
-    """Read all instances and attach mkcbres best-known values."""
+    # Usa o mkcbres.txt como fonte dos valores de referencia.
     instances = read_all_mknapcb(data_dir)
     references = read_reference_values(data_dir / "mkcbres.txt")
 
@@ -109,7 +106,7 @@ def load_benchmark_instances(data_dir: Path) -> list[MKPInstance]:
 
 
 def read_reference_values(path: Path) -> dict[str, int]:
-    """Read the best feasible values table from mkcbres.txt."""
+    # Le apenas a primeira tabela: Best Feasible Solution Value.
     references: dict[str, int] = {}
     pattern = re.compile(r"^\s*(\d+\.\d+-\d+)\s+(\d+)\s*$")
 
@@ -126,5 +123,5 @@ def read_reference_values(path: Path) -> dict[str, int]:
 
 
 def reference_key(instance: MKPInstance) -> str:
-    """Build the mkcbres key, e.g. 5.100-00."""
+    # Chave usada no mkcbres.txt, por exemplo: 5.100-00.
     return f"{instance.m}.{instance.n}-{instance.instance - 1:02d}"
