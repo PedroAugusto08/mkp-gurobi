@@ -25,6 +25,23 @@ Nesta implementacao, o foco sera a modelagem ILP:
 - funcao objetivo de maximizacao do lucro total;
 - restricoes de capacidade para cada recurso.
 
+Nao sao implementadas metaheuristicas; o solver Gurobi resolve diretamente a
+formulacao inteira do MKP.
+
+## Referencias das instancias
+
+O arquivo `mkcbres.txt` contem os melhores valores viaveis conhecidos para as
+instancias de Chu e Beasley. Esses valores sao usados como referencia de
+comparacao, mas nao devem ser interpretados necessariamente como otimos
+provados para todos os casos.
+
+Por isso, o CSV final inclui duas colunas percentuais:
+
+- `gap_to_reference_percent`: positivo quando o valor do Gurobi fica abaixo da
+  referencia;
+- `improvement_over_reference_percent`: positivo quando o Gurobi encontra valor
+  maior que a referencia.
+
 ## Execucao
 
 Por padrao, o script usa um subconjunto leve e medio autorizado para os

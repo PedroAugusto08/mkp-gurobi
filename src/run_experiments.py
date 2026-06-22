@@ -23,7 +23,9 @@ CSV_COLUMNS = [
     "alpha",
     "reference_value",
     "gurobi_obj",
-    "gap_to_reference",
+    "gap_to_reference_percent",
+    "improvement_over_reference_percent",
+    "is_better_than_reference",
     "mip_gap",
     "runtime_seconds",
     "status",
@@ -64,7 +66,9 @@ def result_row(instance, result) -> dict[str, object]:
         "alpha": f"{instance.alpha:.2f}",
         "reference_value": instance.reference_value,
         "gurobi_obj": format_number(result.gurobi_obj),
-        "gap_to_reference": format_number(result.gap_to_reference),
+        "gap_to_reference_percent": format_number(result.gap_to_reference_percent),
+        "improvement_over_reference_percent": format_number(result.improvement_over_reference_percent),
+        "is_better_than_reference": result.is_better_than_reference,
         "mip_gap": format_number(result.mip_gap),
         "runtime_seconds": format_number(result.runtime_seconds),
         "status": result.status,
@@ -142,6 +146,7 @@ def main() -> None:
 
     print(f"CSV gerado em: {args.output}")
 
+
 def selection_name(args: argparse.Namespace) -> str:
     # Nome amigavel do conjunto escolhido para o experimento.
     if args.all_instances:
@@ -149,6 +154,7 @@ def selection_name(args: argparse.Namespace) -> str:
     if args.all_sizes:
         return "subconjunto representativo completo"
     return "subconjunto leve de 90 instancias"
+
 
 if __name__ == "__main__":
     main()
