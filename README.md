@@ -1,26 +1,55 @@
 # mkp-gurobi
 
-Implementacao em Python/Gurobi da formulação ILP para o Problema da Mochila
+Implementacao em Python/Gurobi da formulacao ILP para o Problema da Mochila
 Multidimensional 0-1 (Multidimensional Knapsack Problem - MKP), usando
-instâncias públicas da OR-Library.
+instancias publicas da OR-Library.
 
 ## Estrutura
 
 ```text
-data/       Instâncias da OR-Library e arquivo de referências
-src/        Código-fonte da implementação
+data/       Instancias da OR-Library e arquivo de referencias
+src/        Codigo-fonte da implementacao
 results/    Arquivos gerados pelos experimentos
 ```
 
 ## Escopo
 
-O projeto reproduz a formulação 0-1 apresentada no artigo
+O projeto reproduz a formulacao 0-1 apresentada no artigo
 *The Multidimensional Knapsack Problem: Structure and Algorithms*, de
-Puchinger, Raidl e Pferschy, resolvendo as instâncias com a API Python do
+Puchinger, Raidl e Pferschy, resolvendo as instancias com a API Python do
 Gurobi.
 
-Nesta implementação, o foco será a modelagem ILP:
+Nesta implementacao, o foco sera a modelagem ILP:
 
-- variáveis binárias indicando se cada item é escolhido;
-- função objetivo de maximização do lucro total;
-- restrições de capacidade para cada recurso.
+- variaveis binarias indicando se cada item e escolhido;
+- funcao objetivo de maximizacao do lucro total;
+- restricoes de capacidade para cada recurso.
+
+## Execucao
+
+Por padrao, o script usa um subconjunto leve e medio autorizado para os
+experimentos: todas as 30 instancias dos arquivos `mknapcb1`, `mknapcb2` e
+`mknapcb4`. Assim, sao avaliadas 90 instancias cobrindo os tres grupos de
+`alpha`, com limite de tempo padrao de 60 segundos por instancia.
+
+```bash
+python src/run_experiments.py --restart
+```
+
+Para deixar o limite explicito:
+
+```bash
+python src/run_experiments.py --restart --time-limit 60
+```
+
+Para executar o subconjunto representativo completo de 81 instancias:
+
+```bash
+python src/run_experiments.py --all-sizes --restart --time-limit 60
+```
+
+Para executar todas as 270 instancias:
+
+```bash
+python src/run_experiments.py --all-instances --restart --time-limit 60
+```

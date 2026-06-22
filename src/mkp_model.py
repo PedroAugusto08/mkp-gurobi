@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from pathlib import Path
 
 import gurobipy as gp
 from gurobipy import GRB
@@ -16,42 +17,58 @@ class MKPResult:
     status: str
 
 
-def solve_mkp(instance: MKPInstance, time_limit: float = 300, log_to_console: bool = False) -> MKPResult:
+def solve_mkp(
+    instance: MKPInstance,
+    time_limit: float = 300,
+    mip_gap: float | None = None,
+    nodefile_dir: Path | None = None,
+    nodefile_start: float = 0.5,
+    log_to_console: bool = False,
+) -> MKPResult:
     # Monta e resolve a formulacao ILP do MKP.
     model = gp.Model(f"{instance.file_name}_{instance.instance}")
-    model.Params.TimeLimit = time_limit
-    model.Params.LogToConsole = int(log_to_console)
+    try:
+        model.Params.TimeLimit = time_limit
+        model.Params.LogToConsole = int(log_to_console)
+        model.Params.NodefileStart = nodefile_start
 
-    # x[j] = 1 se o item j for escolhido; 0 caso contrario.
-    x = model.addVars(instance.n, vtype=GRB.BINARY, name="x")
+        if mip_gap is not None:
+            model.Params.MIPGap = mip_gap
+        if nodefile_dir is not None:
+            model.Params.NodefileDir = str(nodefile_dir)
 
-    # Maximiza o lucro total dos itens escolhidos.
-    model.setObjective(
-        gp.quicksum(instance.profits[j] * x[j] for j in range(instance.n)),
-        GRB.MAXIMIZE,
-    )
+        # x[j] = 1 se o item j for escolhido; 0 caso contrario.
+        x = model.addVars(instance.n, vtype=GRB.BINARY, name="x")
 
-    # Cada recurso deve respeitar sua capacidade.
-    for i in range(instance.m):
-        model.addConstr(
-            gp.quicksum(instance.weights[i][j] * x[j] for j in range(instance.n))
-            <= instance.capacities[i],
-            name=f"capacity_{i + 1}",
+        # Maximiza o lucro total dos itens escolhidos.
+        model.setObjective(
+            gp.quicksum(instance.profits[j] * x[j] for j in range(instance.n)),
+            GRB.MAXIMIZE,
         )
 
-    model.optimize()
+        # Cada recurso deve respeitar sua capacidade.
+        for i in range(instance.m):
+            model.addConstr(
+                gp.quicksum(instance.weights[i][j] * x[j] for j in range(instance.n))
+                <= instance.capacities[i],
+                name=f"capacity_{i + 1}",
+            )
 
-    gurobi_obj = model.ObjVal if model.SolCount > 0 else None
-    mip_gap = model.MIPGap if model.SolCount > 0 else None
-    gap_to_reference = _gap_to_reference(gurobi_obj, instance.reference_value)
+        model.optimize()
 
-    return MKPResult(
-        gurobi_obj=gurobi_obj,
-        gap_to_reference=gap_to_reference,
-        mip_gap=mip_gap,
-        runtime_seconds=model.Runtime,
-        status=_status_name(model.Status),
-    )
+        gurobi_obj = model.ObjVal if model.SolCount > 0 else None
+        result_mip_gap = model.MIPGap if model.SolCount > 0 else None
+        gap_to_reference = _gap_to_reference(gurobi_obj, instance.reference_value)
+
+        return MKPResult(
+            gurobi_obj=gurobi_obj,
+            gap_to_reference=gap_to_reference,
+            mip_gap=result_mip_gap,
+            runtime_seconds=model.Runtime,
+            status=_status_name(model.Status),
+        )
+    finally:
+        model.dispose()
 
 
 def _gap_to_reference(gurobi_obj: float | None, reference_value: int) -> float | None:
